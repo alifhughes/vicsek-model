@@ -1,0 +1,8 @@
+# Set compiler
+CC=g++
+
+# Set program name
+PROGRAM_NAME=serial_version_main
+
+$(PROGRAM_NAME):
+	$(CC) -o serial_version serial_version_main.cpp -framework SDL2

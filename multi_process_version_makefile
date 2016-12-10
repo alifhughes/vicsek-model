@@ -1,0 +1,9 @@
+# Use mpic++ compiler
+CC=mpic++
+
+# Set program name
+PROGRAM_NAME = multi_process_version
+
+
+$(PROGRAM_NAME):
+	$(CC) multi_process_version.cpp -framework SDL2

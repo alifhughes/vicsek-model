@@ -6,7 +6,7 @@
 #define SCREEN_W 600
 #define SCREEN_H 480
 #define LINE_LEN 5
-#define SPEED 1.0f
+#define SPEED 0.2f
 #define RADIUS 0.25f
 #define PHASE_LAG 1.53f
 #define COUPLING 1.0f

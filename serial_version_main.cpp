@@ -117,6 +117,7 @@ int main(int argc, char** argv) {
     // Start SDL event
     SDL_Event event;
     int running = 1;
+
     while(running)
     {
 

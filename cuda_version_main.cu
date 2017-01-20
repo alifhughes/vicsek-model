@@ -18,7 +18,7 @@
 #define COUPLING 1.0f
 #define DT 0.1f
 
-#define USE_SHARED_BUFFER
+//#define USE_SHARED_BUFFER
 
 __device__ float RADIUS_SQ = RADIUS*RADIUS;
 
@@ -156,7 +156,11 @@ int main(int argc, char** argv)
 	int running = 1;
 	unsigned int lastTicks = SDL_GetTicks();
 	float t = 0;
+
 	int prePause = 2;
+	float totalUpdate = 0;
+	float totalRender = 0;
+
 	while (running)
 	{
 
@@ -196,6 +200,9 @@ int main(int argc, char** argv)
 			cudaMemcpyDeviceToHost));
 		t += DT;
 
+		for (int i = 0; i < 10; i++) {
+			std::cout << particles[i].x << " " << particles[i].y << std::endl;
+		}
 		unsigned int endUpdateTicks = SDL_GetTicks();
 
 		// Draw particles.
@@ -211,8 +218,26 @@ int main(int argc, char** argv)
 		SDL_RenderPresent(renderer);
 		unsigned int endRenderTicks = SDL_GetTicks();
 
+
 		std::cout << t << ": Update took " << endUpdateTicks - ticks << "ms. Draw took " << endRenderTicks - endUpdateTicks << "ms." << std::endl;
+
+		// Update the total amount of time
+		totalUpdate += endUpdateTicks - ticks;
+ 		totalRender += endRenderTicks - endUpdateTicks;
+
+		// Stop after 50 updates NOT WORKING YET AS CAN'T COMPARE FLOATS
+		if (t == 50) {
+
+			break;
+		}
+
 	}
+
+	// Get the average update and render time across the 50 updates
+	float averageUpdate = totalUpdate / t;
+	float averageRender = totalRender / t;
+
+	std::cout << t << ": Update took " << averageUpdate << "ms. Draw took " << averageRender << "ms." << std::endl;
 
 	return 0;
 }

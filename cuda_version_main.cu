@@ -7,18 +7,20 @@
 #include <cuda_runtime_api.h>
 #include <device_functions.h>
 
-#define NUM_PARTICLES 10000
+#define NUM_PARTICLES 1000
 #define SHARED_BUFFER_SIZE 1000
 #define SCREEN_W 600
 #define SCREEN_H 600
 #define LINE_LEN 5
-#define SPEED 1.0f
+#define SPEED 0.25f
 #define RADIUS 0.25f
 #define PHASE_LAG 1.53f
 #define COUPLING 1.0f
 #define DT 0.1f
 
 #define USE_SHARED_BUFFER
+
+__device__ float RADIUS_SQ = RADIUS*RADIUS;
 
 static void HandleError(cudaError_t err, const char *file, int line) {
 	if (err != cudaSuccess) {
@@ -38,7 +40,7 @@ typedef struct {
 __global__ void timestepKernel(particle_t* particles)
 {
 
-	const float RADIUS_SQ = RADIUS*RADIUS;
+
 #ifdef USE_SHARED_BUFFER
 	__shared__ particle_t sharedParticles[SHARED_BUFFER_SIZE];
 #endif
@@ -60,7 +62,7 @@ __global__ void timestepKernel(particle_t* particles)
 			// In each phase (i), one thread loads one particle into shared memory.
 			sharedParticles[threadIdx.x] = particles[i*SHARED_BUFFER_SIZE + threadIdx.x];
 
-			//__syncthreads(); // Dangerous - make sure block size evenly divides particle count.
+		    //__syncthreads(); // Dangerous - make sure block size evenly divides particle count.
 
 			// Find nearby particles and update direction.
 			for (int j = 0; j < SHARED_BUFFER_SIZE; j++) {
@@ -157,6 +159,7 @@ int main(int argc, char** argv)
 	int prePause = 2;
 	while (running)
 	{
+
 		unsigned int ticks = SDL_GetTicks();
 		float dt = (ticks - lastTicks) / 1000.0f;
 		lastTicks = ticks;
@@ -176,6 +179,7 @@ int main(int argc, char** argv)
 				}
 			}
 		}
+
 		if (!running) break;
 
 		// Run the update/draw once when the program first starts, then pause until key pressed.

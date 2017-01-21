@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 
-#define NUM_PARTICLES 10000
+#define NUM_PARTICLES 4000
 #define SCREEN_W 600
 #define SCREEN_H 480
 #define LINE_LEN 5
@@ -159,15 +159,15 @@ int main(int argc, char** argv) {
 
        counter++;
 
-       if (counter == 50) {
+       if (counter == 500) {
            break;
        }
 
 
     }
 
-    float averageUpdate = totalUpdateTime / 50;
-    float averageRender = totalRenderTime / 50;
+    float averageUpdate = totalUpdateTime / 500;
+    float averageRender = totalRenderTime / 500;
 
     std::cout << averageUpdate << " " << averageRender << std::endl;
 

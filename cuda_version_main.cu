@@ -160,6 +160,7 @@ int main(int argc, char** argv)
 	int prePause = 2;
 	float totalUpdate = 0;
 	float totalRender = 0;
+	int counter = 0;
 
 	while (running)
 	{
@@ -175,20 +176,8 @@ int main(int argc, char** argv)
 				running = 0;
 				break;
 			}
-			else if (event.type == SDL_KEYDOWN)
-			{
-				SDL_KeyboardEvent* keyEvent = (SDL_KeyboardEvent*)&event;
-				if (keyEvent->keysym.sym == SDLK_SPACE) {
-					prePause = 0;
-				}
-			}
+
 		}
-
-		if (!running) break;
-
-		// Run the update/draw once when the program first starts, then pause until key pressed.
-		if (prePause == 1) continue;
-		if (prePause == 2) prePause--;
 
 		// Update particles using the GPU.
 		timestepKernel << <gridSize, blockSize >> >(dev_particles);
@@ -200,15 +189,15 @@ int main(int argc, char** argv)
 			cudaMemcpyDeviceToHost));
 		t += DT;
 
-		for (int i = 0; i < 10; i++) {
-			std::cout << particles[i].x << " " << particles[i].y << std::endl;
-		}
 		unsigned int endUpdateTicks = SDL_GetTicks();
 
 		// Draw particles.
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 		SDL_RenderClear(renderer);
 		for (int i = 0; i < NUM_PARTICLES; i++)
 		{
+
+			SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
 			SDL_RenderDrawLine(renderer,
 				particles[i].x*SCREEN_W,
 				particles[i].y*SCREEN_H,
@@ -220,13 +209,14 @@ int main(int argc, char** argv)
 
 
 		std::cout << t << ": Update took " << endUpdateTicks - ticks << "ms. Draw took " << endRenderTicks - endUpdateTicks << "ms." << std::endl;
-
+		 
 		// Update the total amount of time
 		totalUpdate += endUpdateTicks - ticks;
  		totalRender += endRenderTicks - endUpdateTicks;
+		counter++;
 
 		// Stop after 50 updates NOT WORKING YET AS CAN'T COMPARE FLOATS
-		if (t == 50) {
+		if (counter == 500) {
 
 			break;
 		}
@@ -234,10 +224,10 @@ int main(int argc, char** argv)
 	}
 
 	// Get the average update and render time across the 50 updates
-	float averageUpdate = totalUpdate / t;
-	float averageRender = totalRender / t;
+	float averageUpdate = totalUpdate / 500;
+	float averageRender = totalRender / 500;
 
-	std::cout << t << ": Update took " << averageUpdate << "ms. Draw took " << averageRender << "ms." << std::endl;
+	std::cout << averageUpdate << " " << averageRender << std::endl;
 
 	return 0;
 }

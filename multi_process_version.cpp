@@ -2,7 +2,7 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 
-#define NUM_PARTICLES 1000
+#define NUM_PARTICLES 10000
 #define SCREEN_W 600
 #define SCREEN_H 480
 #define LINE_LEN 5
@@ -33,23 +33,6 @@ SDL_Event event;
 typedef struct {
     float x, y, phi;
 } particle_struct;
-
-    /**
-     * Split the particles into chunks and process like that
-     *  - get the comm size
-     *  - make it so it splits particles into even chunks for each process
-     *  - base process initalises random
-     *
-     *  - then it does bcast to all processes so they know all other particles positions
-     *      - they still need to only update their amount
-     *      - potentially in the loop they know they're amount and they need to calculate their start and finish position
-     *  - once updated, they can do an allgather
-     *      - So root node can render all particles
-     *      - and all processes have the updated versions of the particles
-     *
-     *  - then can split further and make multi threaded
-     */
-
 
 /**
  * Update the position and direction of particle based off of other particles
@@ -186,9 +169,21 @@ int main(int argc, char** argv) {
     // Initialise bool for quiting program
     bool quit = false;
 
+    int running = 1;
+    unsigned int lastTicks = SDL_GetTicks();
+    double t = 0;
+    float totalUpdateTime = 0.0f;
+    float totalRenderTime = 0.0f;
+    int counter = 0;
+
     while(!quit)
     {
-        //Handle events on queue 
+
+        unsigned int ticks = SDL_GetTicks();
+        float dt = (ticks - lastTicks) / 1000.0f;
+        lastTicks = ticks;
+
+    //Handle events on queue 
         while( SDL_PollEvent(&event) != 0 ) {
 
             //User requests quit
@@ -205,6 +200,10 @@ int main(int argc, char** argv) {
         MPI_Allgather(processParticles, 3*particlesPerProcess, MPI_FLOAT,
             particles, 3*particlesPerProcess, MPI_FLOAT, MPI_COMM_WORLD);
 
+        t += dt;
+
+        unsigned int endUpdateTicks = SDL_GetTicks();
+
         // Check if root node
         if (myRank == 0) {
 
@@ -220,10 +219,30 @@ int main(int argc, char** argv) {
 
             }
 
-            SDL_RenderPresent(renderer);
+           SDL_RenderPresent(renderer);
+
+           unsigned int endRenderTicks = SDL_GetTicks();
+
+          std::cout << t << ": Update took " << endUpdateTicks - ticks << "ms. Draw took " << endRenderTicks - endUpdateTicks << "ms." << std::endl;
+
+          totalUpdateTime += endUpdateTicks - ticks;
+          totalRenderTime += endRenderTicks - endUpdateTicks;
+
         }
 
+       counter++;
+
+       if (counter == 500) {
+           break;
+       }
+
+
     }
+
+    float averageUpdate = totalUpdateTime / 500;
+    float averageRender = totalRenderTime / 500;
+
+    std::cout << averageUpdate << " " << averageRender << std::endl;
 
     //Free resources and close SDL
     close();

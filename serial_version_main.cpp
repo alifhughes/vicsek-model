@@ -1,11 +1,11 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 
-#define NUM_PARTICLES 1000
+#define NUM_PARTICLES 10000
 #define SCREEN_W 600
 #define SCREEN_H 480
 #define LINE_LEN 5
-#define SPEED 1.0f
+#define SPEED 0.25f
 #define RADIUS 0.25f
 #define PHASE_LAG 1.53f
 #define COUPLING 1.0f
@@ -117,12 +117,25 @@ int main(int argc, char** argv) {
     // Start SDL event
     SDL_Event event;
     int running = 1;
+    unsigned int lastTicks = SDL_GetTicks();
+    double t = 0;
+    float totalUpdateTime = 0.0f;
+    float totalRenderTime = 0.0f;
+    int counter = 0;
 
     while(running)
     {
 
+        unsigned int ticks = SDL_GetTicks();
+        float dt = (ticks - lastTicks) / 1000.0f;
+        lastTicks = ticks;
+
         // Update the particles
         updateParticles(particles);
+
+        t += dt;
+
+        unsigned int endUpdateTicks = SDL_GetTicks();
 
         // Draw particles
         SDL_RenderClear(renderer);
@@ -136,7 +149,27 @@ int main(int argc, char** argv) {
         }
         SDL_RenderPresent(renderer);
 
+       unsigned int endRenderTicks = SDL_GetTicks();
+
+       std::cout << t << ": Update took " << endUpdateTicks - ticks << "ms. Draw took " << endRenderTicks - endUpdateTicks << "ms." << std::endl;
+
+       totalUpdateTime += endUpdateTicks - ticks;
+       totalRenderTime += endRenderTicks - endUpdateTicks;
+
+
+       counter++;
+
+       if (counter == 50) {
+           break;
+       }
+
+
     }
+
+    float averageUpdate = totalUpdateTime / 50;
+    float averageRender = totalRenderTime / 50;
+
+    std::cout << averageUpdate << " " << averageRender << std::endl;
 
     return 0;
 }
